@@ -13,7 +13,17 @@ async function getAuth() {
 
 // 1. Check Access: Returns status object
 export async function checkAccess(providedUserId?: string | null) {
-    const { userId, sessionClaims } = await auth();
+    let userId: string | null = null;
+    let sessionClaims: any = null;
+
+    try {
+        const authData = await auth();
+        userId = authData.userId;
+        sessionClaims = authData.sessionClaims;
+    } catch (e) {
+        console.warn("Auth check failed in checkAccess (env vars missing?):", e);
+    }
+
     const finalUserId = providedUserId || userId;
 
     if (!finalUserId) {

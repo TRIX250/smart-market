@@ -58,8 +58,16 @@ export async function initializeSubscription() {
  * Verifies and updates the subscription after a successful payment
  */
 export async function verifyAndActivateSubscription(transactionId: string) {
-    const userId = (await auth()).userId;
-    if (!userId) throw new Error("Unauthorized");
+    let authData;
+    try {
+        authData = await auth();
+    } catch {
+        // Prerendering environment or missing auth
+        return { success: false, message: "Prerendering: Skip Auth" };
+    }
+
+    const userId = authData?.userId;
+    if (!userId) return { success: false, message: "Unauthorized" };
 
     try {
         // Verify payment with Flutterwave

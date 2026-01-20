@@ -33,7 +33,15 @@ import { LiveBackground } from '@/components/live-background'
 import { auth } from '@clerk/nextjs/server'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
+  let userId: string | null = null;
+
+  try {
+    const authData = await auth();
+    userId = authData.userId;
+  } catch (e) {
+    console.warn("RootLayout auth check failed (env vars missing?):", e);
+  }
+
   const access = await checkAccess(userId);
 
   return (
