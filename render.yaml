@@ -22,6 +22,14 @@ services:
         sync: false
       - key: FLW_PUBLIC_KEY
         sync: false
+      - key: MOMO_API_USER
+        sync: false
+      - key: MOMO_API_KEY
+        sync: false
+      - key: MOMO_PRIMARY_KEY
+        sync: false
+      - key: MOMO_TARGET_ENV
+        value: sandbox
       - key: NEXT_PUBLIC_APP_URL
         sync: false
     autoDeploy: true
