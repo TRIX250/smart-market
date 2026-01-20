@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import type { NextRequest, NextFetchEvent } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
   '/',
@@ -11,7 +12,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook/flutterwave(.*)'
 ]);
 
-export const proxy = clerkMiddleware(async (auth, req) => {
+const handler = clerkMiddleware(async (auth, req) => {
   try {
     const authData = await auth();
     const { userId, sessionClaims } = authData;
@@ -68,6 +69,15 @@ export const proxy = clerkMiddleware(async (auth, req) => {
     return NextResponse.next();
   }
 });
+
+export const proxy = async (req: NextRequest, event: NextFetchEvent) => {
+  try {
+    return await handler(req, event);
+  } catch (error) {
+    console.error('Middleware execution error:', error);
+    return NextResponse.next();
+  }
+};
 
 export const config = {
   matcher: [
