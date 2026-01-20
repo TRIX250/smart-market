@@ -1,0 +1,12 @@
+import { defineConfig } from '@prisma/config';
+
+export default defineConfig({
+  schema: {
+    kind: 'local',
+    path: 'prisma/schema.prisma',
+  },
+  migration: {
+    kind: 'local',
+    url: "postgresql://user:password@localhost:5432/smartmarket?schema=public",
+  },
+});

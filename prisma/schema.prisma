@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id           String     @id @default(cuid())
+  userId       String     // Clerk User ID
+  name         String
+  sku          String     @unique
+  costPrice    Float
+  sellingPrice Float
+  stockQty     Int
+  category     String?
+  image        String?    @db.Text
+  
+  supplierId   String?
+  supplier     Supplier?  @relation(fields: [supplierId], references: [id])
+  
+  sales        Sale[]
+  waste        WasteLog[]
+  creditSales  CreditSale[]
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model Supplier {
+  id        String    @id @default(cuid())
+  userId    String    // Every user manages their own suppliers
+  name      String
+  contact   String
+  products  Product[]
+
+  @@index([userId])
+}
+
+model Sale {
+  id            String   @id @default(cuid())
+  userId        String
+  productId     String
+  quantity      Int
+  totalAmount   Float
+  profit        Float
+  paymentMethod String
+  status        String   @default("COMPLETED") // New field for pending logic
+  createdAt     DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+  
+model WasteLog {
+  id        String   @id @default(cuid())
+  userId    String   // Clerk User ID
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int
+  reason    String   // SPOILAGE, DAMAGE, THEFT
+  valueLost Float
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CreditSale {
+  id              String    @id @default(cuid())
+  userId          String
+  productId       String
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerName    String
+  quantity        Int
+  totalAmount     Float
+  saleDate        DateTime  @default(now())
+  expectedPayDate DateTime?
+  paidDate        DateTime?
+  status          String    @default("UNPAID") // UNPAID, PAID
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Subscription {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  isSubscribed Boolean   @default(false)
+  planStatus   String    @default("INACTIVE")
+  expiryDate   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model PaymentRequest {
+  id            String   @id @default(cuid())
+  userId        String
+  userEmail     String?
+  transactionId String   @unique
+  screenshotUrl String?
+  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  amount        Float    @default(7000)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String
+  category    String   // Rent, Electricity, Salary, Other
+  amount      Int
+  description String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
