@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect, useRef } from 'react'
 import { approvePayment, rejectPayment, getPendingPayments } from '@/app/actions'
 import { toast } from 'sonner'
