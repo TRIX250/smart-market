@@ -11,7 +11,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook/flutterwave(.*)'
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
+export const proxy = clerkMiddleware(async (auth, req) => {
   try {
     const authData = await auth();
     const { userId, sessionClaims } = authData;
