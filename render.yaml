@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: smartmarket-manager
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smartmarket-db
+          property: connectionString
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: FLW_SECRET_KEY
+        sync: false
+      - key: FLW_PUBLIC_KEY
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+    autoDeploy: true
+
+databases:
+  - name: smartmarket-db
+    plan: free # Note: Free DBs expire after 90 days on Render. Upgrade to 'starter' for persistence.
+    databaseName: smartmarket
+    user: smartmarket_user
+    ipAllowList: [] # Allow all IPs for Web Service access
+
+version: "1"
