@@ -55,7 +55,7 @@ export default function SubscribePage() {
             description: "Now just paste the code and press call."
         });
         setTimeout(() => {
-            window.location.href = 'tel:*182*';
+            window.location.href = 'tel:*182*8*1*1957217*7000#';
         }, 800);
     }
 
