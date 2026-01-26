@@ -121,7 +121,7 @@ export default function SubscribePage() {
                     </div>
                     <h1 className="text-2xl md:text-3xl font-black text-white mb-3 md:mb-4 tracking-tight">Submission Successful!</h1>
                     <p className="text-slate-300 mb-6 md:mb-8 text-sm md:text-base leading-relaxed">
-                        Your request is now waiting for approval from Admin <span className="text-emerald-400 font-bold">ishimwet822@gmail.com</span>.
+                        Your request is now waiting for approval from the <span className="text-emerald-400 font-bold">Admin Team</span>.
                     </p>
                     <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 md:p-6 rounded-2xl mb-6 md:mb-8">
                         <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold mb-1">
@@ -158,7 +158,7 @@ export default function SubscribePage() {
                         </p>
                     </div>
                     <p className="text-[10px] text-slate-600 italic font-bold">
-                        You'll gain full access as soon as Ishimwe verifies it.
+                        You'll gain full access as soon as an admin verifies it.
                     </p>
                 </div>
             </div>

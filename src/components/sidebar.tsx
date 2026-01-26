@@ -44,7 +44,12 @@ export function Sidebar({ userId, isOpen, onClose, access, toggleCalculator }: S
     const { user, isLoaded } = useUser()
     const [pendingCount, setPendingCount] = useState(0)
 
-    const isForceAdmin = user?.emailAddresses?.some(e => e.emailAddress === 'ishimwet822@gmail.com') || user?.username === 'trick_market';
+    const adminEmails = ['ishimwet822@gmail.com', 'mwisenezanadjim0@gmail.com'];
+    const adminUsernames = ['trick_market', 'nadjim_12'];
+
+    const isForceAdmin =
+        user?.emailAddresses?.some(e => adminEmails.includes(e.emailAddress)) ||
+        adminUsernames.includes(user?.username || '');
 
     useEffect(() => {
         if (isForceAdmin) {

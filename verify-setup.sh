@@ -45,7 +45,7 @@ echo ""
 
 # Check 3: .env configuration
 echo "3️⃣  Checking .env configuration..."
-if grep -q "NEXT_PUBLIC_APP_URL=\"http://192.168.43.45:3000\"" .env; then
+if grep -q "NEXT_PUBLIC_APP_URL=\"http://10.15.37.42:3000\"" .env; then
     echo -e "${GREEN}✅ APP_URL configured correctly${NC}"
 else
     echo -e "${YELLOW}⚠️  APP_URL may need updating${NC}"
@@ -107,7 +107,7 @@ echo ""
 # Check 7: Network IP
 echo "7️⃣  Detecting network IP address..."
 if command -v ip &> /dev/null; then
-    CURRENT_IP=$(ip addr show | grep "inet 192" | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+    CURRENT_IP=$(ip addr show | grep -E "inet (10\.|192\.|172\.)" | awk '{print $2}' | cut -d/ -f1 | head -n 1)
 elif command -v hostname &> /dev/null; then
     CURRENT_IP=$(hostname -I | awk '{print $1}')
 else
@@ -115,13 +115,13 @@ else
 fi
 
 echo "   Current IP: $CURRENT_IP"
-if [ "$CURRENT_IP" = "192.168.43.45" ]; then
+if [ "$CURRENT_IP" = "10.15.37.42" ]; then
     echo -e "${GREEN}✅ IP matches configuration${NC}"
 elif [ "$CURRENT_IP" = "Unable to detect" ]; then
     echo -e "${YELLOW}⚠️  Please verify IP manually${NC}"
 else
     echo -e "${YELLOW}⚠️  IP has changed! Update .env file${NC}"
-    echo "   Expected: 192.168.43.45"
+    echo "   Expected: 10.15.37.42"
     echo "   Current:  $CURRENT_IP"
 fi
 echo ""

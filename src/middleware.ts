@@ -17,7 +17,8 @@ const handler = clerkMiddleware(async (auth, req) => {
     const authData = await auth();
     const { userId, sessionClaims } = authData;
 
-    const adminEmail = 'ishimwet822@gmail.com';
+    const adminEmails = ['ishimwet822@gmail.com', 'mwisenezanadjim0@gmail.com'];
+    const adminUsernames = ['trick_market', 'nadjim_12'];
     const claims = sessionClaims as {
       email?: string;
       username?: string;
@@ -30,7 +31,7 @@ const handler = clerkMiddleware(async (auth, req) => {
     // 1. PUBLIC ROUTES (Landing, Auth, etc.)
     if (isPublicRoute(req)) {
       // If logged in as admin/owner, don't show the subscribe page
-      if (userId && (userEmail?.toLowerCase() === adminEmail.toLowerCase() || username === 'trick_market')) {
+      if (userId && (adminEmails.some(admin => userEmail?.toLowerCase() === admin.toLowerCase()) || adminUsernames.includes(username || ''))) {
         if (req.nextUrl.pathname === '/subscribe') {
           return NextResponse.redirect(new URL('/', req.url)); // Safe redirect to home
         }
@@ -48,8 +49,8 @@ const handler = clerkMiddleware(async (auth, req) => {
 
     // 3. AUTO-LOCK EXPIRED USERS
     const isAdminOrOwner =
-      userEmail?.toLowerCase() === adminEmail.toLowerCase() ||
-      username === 'trick_market';
+      adminEmails.some(admin => userEmail?.toLowerCase() === admin.toLowerCase()) ||
+      adminUsernames.includes(username || '');
 
     if (!isAdminOrOwner) {
       const expiry = claims?.publicMetadata?.expiryDate;

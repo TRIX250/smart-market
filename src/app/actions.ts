@@ -7,8 +7,8 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
 // Hard-coded Admin List
-const ADMIN_EMAILS = ['ishimwet822@gmail.com'];
-const ADMIN_USERNAMES = ['trick_market'];
+const ADMIN_EMAILS = ['ishimwet822@gmail.com', 'mwisenezanadjim0@gmail.com'];
+const ADMIN_USERNAMES = ['trick_market', 'nadjim_12'];
 
 async function getSafeUser() {
     try {

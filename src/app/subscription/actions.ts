@@ -36,11 +36,13 @@ export async function checkAccess(providedUserId?: string | null) {
     const claims = sessionClaims as { email?: string, username?: string } | null;
     const userEmail = claims?.email;
     const username = claims?.username;
-    const adminEmail = 'ishimwet822@gmail.com';
+
+    const adminEmails = ['ishimwet822@gmail.com', 'mwisenezanadjim0@gmail.com'];
+    const adminUsernames = ['trick_market', 'nadjim_12'];
 
     isAdmin =
-        userEmail?.toLowerCase() === adminEmail.toLowerCase() ||
-        username === 'trick_market';
+        adminEmails.includes(userEmail?.toLowerCase() || '') ||
+        adminUsernames.includes(username || '');
 
     if (isAdmin) {
         return {
@@ -57,8 +59,8 @@ export async function checkAccess(providedUserId?: string | null) {
         const user = await currentUser();
         if (user) {
             isAdmin =
-                user.emailAddresses?.some(e => e.emailAddress.toLowerCase() === adminEmail.toLowerCase()) ||
-                user.username?.toLowerCase() === 'trick_market';
+                user.emailAddresses?.some(e => adminEmails.includes(e.emailAddress.toLowerCase())) ||
+                adminUsernames.includes(user.username?.toLowerCase() || '');
 
             if (isAdmin) {
                 return {

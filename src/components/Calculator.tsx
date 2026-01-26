@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Calculator as CalcIcon, X, Trash2, GripHorizontal, ArrowRightToLine } from 'lucide-react'
+import { Calculator as CalcIcon, X, Delete, GripHorizontal, ArrowRightToLine } from 'lucide-react'
 
 interface CalculatorProps {
     isOpen: boolean
@@ -29,10 +29,24 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
         }
     }
 
+    const handleBackspace = () => {
+        if (newNumber) return
+        if (display.length === 1) {
+            setDisplay('0')
+            setNewNumber(true)
+        } else {
+            setDisplay(display.slice(0, -1))
+        }
+    }
+
     const handleDecimal = () => {
+        if (newNumber) {
+            setDisplay('0.')
+            setNewNumber(false)
+            return
+        }
         if (!display.includes('.')) {
             setDisplay(display + '.')
-            setNewNumber(false)
         }
     }
 
@@ -57,7 +71,9 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
             case '*': result = previousValue * current; break;
             case '/': result = current !== 0 ? previousValue / current : 0; break;
         }
-        setDisplay(result.toString())
+        // Handle floating point precision
+        const formattedResult = Number(result.toFixed(8)).toString()
+        setDisplay(formattedResult)
         setPreviousValue(null)
         setOperation(null)
         setNewNumber(true)
@@ -74,13 +90,35 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
         const val = parseFloat(display);
         if (isNaN(val)) return;
 
-        // Dispatch custom event for POS to hear
         const event = new CustomEvent('paste-to-pos', { detail: val });
         window.dispatchEvent(event);
-
-        // Optional: show a small toast or close
         onClose();
     }
+
+    // Keyboard Support
+    useEffect(() => {
+        if (!isOpen) return
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key >= '0' && e.key <= '9') {
+                handleNumber(e.key)
+            } else if (e.key === '.') {
+                handleDecimal()
+            } else if (['+', '-', '*', '/'].includes(e.key)) {
+                handleOperation(e.key)
+            } else if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault()
+                calculate()
+            } else if (e.key === 'Backspace') {
+                handleBackspace()
+            } else if (e.key === 'Escape') {
+                clear()
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isOpen, display, previousValue, operation, newNumber])
 
     // Drag Logic
     const startDrag = (e: React.MouseEvent | React.TouchEvent) => {
@@ -127,14 +165,14 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
     return (
         <div
             ref={dragRef}
-            className="fixed z-[9999] w-72 md:w-80 shadow-2xl transition-shadow group select-none"
+            className="fixed z-[9999] w-72 md:w-80 shadow-2xl transition-shadow group select-none animate-in fade-in zoom-in duration-200"
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
                 cursor: isDragging ? 'grabbing' : 'auto'
             }}
         >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="bg-slate-900/90 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                 {/* Drag Handle */}
                 <div
                     onMouseDown={startDrag}
@@ -151,7 +189,7 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
                             <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center">
                                 <CalcIcon className="w-4 h-4 text-blue-400" />
                             </div>
-                            <span className="text-xs font-black uppercase tracking-widest text-slate-400">Calculator</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Calculator</span>
                         </div>
                         <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg text-slate-500 hover:text-white transition">
                             <X className="w-4 h-4" />
@@ -159,8 +197,11 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
                     </div>
 
                     {/* Display */}
-                    <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-4">
-                        <div className="text-right text-3xl font-mono font-black text-white truncate">
+                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4 mb-4 ring-1 ring-inset ring-white/5">
+                        <div className="text-[10px] text-slate-500 font-mono h-4 mb-1 text-right overflow-hidden whitespace-nowrap">
+                            {previousValue !== null ? `${previousValue} ${operation || ''}` : ''}
+                        </div>
+                        <div className="text-right text-3xl font-mono font-black text-white truncate h-9 leading-none">
                             {display}
                         </div>
                     </div>
@@ -168,37 +209,37 @@ export function Calculator({ isOpen, onClose }: CalculatorProps) {
                     {/* Buttons Grid */}
                     <div className="grid grid-cols-4 gap-2">
                         {/* Row 1 */}
-                        <button onClick={clear} className="col-span-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black py-4 rounded-xl text-sm transition">AC</button>
-                        <button onClick={() => handleOperation('/')} className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-black py-4 rounded-xl text-lgtransition">÷</button>
-                        <button onClick={() => handleOperation('*')} className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-black py-4 rounded-xl text-lg transition">×</button>
+                        <button onClick={clear} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-black py-4 rounded-xl text-xs transition active:scale-95">AC</button>
+                        <button onClick={handleBackspace} className="bg-white/5 hover:bg-white/10 text-slate-300 font-black py-4 rounded-xl text-lg transition active:scale-95 flex items-center justify-center">
+                            <Delete className="w-5 h-5" />
+                        </button>
+                        <button onClick={() => handleOperation('/')} className={`py-4 rounded-xl font-black text-lg transition active:scale-95 ${operation === '/' ? 'bg-blue-600 text-white' : 'bg-blue-600/10 hover:bg-blue-600/20 text-blue-400'}`}>÷</button>
+                        <button onClick={() => handleOperation('*')} className={`py-4 rounded-xl font-black text-lg transition active:scale-95 ${operation === '*' ? 'bg-blue-600 text-white' : 'bg-blue-600/10 hover:bg-blue-600/20 text-blue-400'}`}>×</button>
 
-                        {/* Mid Rows */}
-                        {['7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3'].map((item) => {
-                            const isOp = ['+', '-'].includes(item);
-                            return (
-                                <button
-                                    key={item}
-                                    onClick={() => isOp ? handleOperation(item) : handleNumber(item)}
-                                    className={`py-4 rounded-xl font-black text-sm transition ${isOp ? 'bg-blue-600/10 hover:bg-blue-600/20 text-blue-400' : 'bg-white/5 hover:bg-white/10 text-white'}`}
-                                >
-                                    {item}
-                                </button>
-                            )
-                        })}
-                        <button onClick={calculate} className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl text-lg shadow-lg shadow-emerald-600/20 transition-all row-span-2">=</button>
+                        {/* Row 2 */}
+                        {['7', '8', '9'].map(n => <button key={n} onClick={() => handleNumber(n)} className="bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-lg transition active:scale-95">{n}</button>)}
+                        <button onClick={() => handleOperation('-')} className={`py-4 rounded-xl font-black text-lg transition active:scale-95 ${operation === '-' ? 'bg-blue-600 text-white' : 'bg-blue-600/10 hover:bg-blue-600/20 text-blue-400'}`}>-</button>
 
-                        {/* Last Row */}
-                        <button onClick={() => handleNumber('0')} className="col-span-2 bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-sm transition">0</button>
-                        <button onClick={handleDecimal} className="bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-sm transition">.</button>
+                        {/* Row 3 */}
+                        {['4', '5', '6'].map(n => <button key={n} onClick={() => handleNumber(n)} className="bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-lg transition active:scale-95">{n}</button>)}
+                        <button onClick={() => handleOperation('+')} className={`py-4 rounded-xl font-black text-lg transition active:scale-95 ${operation === '+' ? 'bg-blue-600 text-white' : 'bg-blue-600/10 hover:bg-blue-600/20 text-blue-400'}`}>+</button>
+
+                        {/* Row 4 & 5 Mixed */}
+                        <div className="col-span-3 grid grid-cols-3 gap-2">
+                            {['1', '2', '3'].map(n => <button key={n} onClick={() => handleNumber(n)} className="bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-lg transition active:scale-95">{n}</button>)}
+                            <button onClick={() => handleNumber('0')} className="col-span-2 bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-lg transition active:scale-95">0</button>
+                            <button onClick={handleDecimal} className="bg-white/5 hover:bg-white/10 text-white font-black py-4 rounded-xl text-lg transition active:scale-95">.</button>
+                        </div>
+                        <button onClick={calculate} className="bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl text-2xl shadow-lg shadow-emerald-600/20 transition-all active:scale-95">=</button>
                     </div>
 
                     {/* Send to POS Action */}
                     <button
                         onClick={handlePaste}
-                        className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-600/20 text-xs uppercase tracking-widest"
+                        className="w-full mt-5 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 text-[10px] uppercase tracking-[0.2em] active:scale-[0.98]"
                     >
                         <ArrowRightToLine className="w-4 h-4" />
-                        Send to POS
+                        Transfer to POS
                     </button>
                 </div>
             </div>
