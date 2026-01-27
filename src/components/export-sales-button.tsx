@@ -31,8 +31,39 @@ export function ExportSalesButton({ sales }: ExportSalesButtonProps) {
     };
 
     const handleExportPDF = () => {
-        exportToPDF(sales, 'SmartMarket_Sales_Report', getColumns());
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        // 1. Weekly Earnings (Last 7 Days)
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+        const weeklyTotal = sales
+            .filter(s => new Date(s.createdAt) >= sevenDaysAgo)
+            .reduce((acc, s) => acc + s.totalAmount, 0);
+
+        // 2. Monthly Earnings (Current Month)
+        const monthlyTotal = sales
+            .filter(s => {
+                const d = new Date(s.createdAt);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            })
+            .reduce((acc, s) => acc + s.totalAmount, 0);
+
+        const summaries = [
+            { label: 'In the last 7 days you earned', value: `Rwf ${weeklyTotal.toLocaleString()}` },
+            {
+                label: 'This month you earned',
+                value: now.getDate() >= 28 ? `Rwf ${monthlyTotal.toLocaleString()}` : 'Not yet shown (Cycle pending)'
+            }
+        ];
+
+        exportToPDF(sales, 'SmartMarket_Sales_Report', getColumns(), summaries);
     };
+
+
+
 
     if (isAuthorized === false) return null;
 
