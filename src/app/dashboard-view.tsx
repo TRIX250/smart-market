@@ -147,6 +147,7 @@ export default function DashboardView({ userId, data = {} }: any) {
               <thead className="text-slate-400 border-b border-white/10 sticky top-0 bg-white/5 backdrop-blur-md">
                 <tr>
                   <th className="text-left pb-2">Item</th>
+                  <th className="text-left pb-2">Qty</th>
                   <th className="text-left pb-2">Method</th>
                   <th className="text-left pb-2">Date</th>
                   <th className="text-right pb-2">Total</th>
@@ -156,6 +157,7 @@ export default function DashboardView({ userId, data = {} }: any) {
                 {salesToday.map((s: any) => (
                   <tr key={s.id}>
                     <td className="py-3 text-slate-300 break-words line-clamp-2 max-w-[120px] md:max-w-none">{s.product?.name}</td>
+                    <td className="py-3 text-slate-400 font-mono">{s.quantity}</td>
                     <td className="py-3 text-[10px] opacity-60 uppercase">{s.paymentMethod}</td>
                     <td className="py-3 text-xs text-slate-400">
                       {new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

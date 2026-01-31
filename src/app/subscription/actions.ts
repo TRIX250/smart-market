@@ -11,6 +11,8 @@ async function getAuth() {
     return userId;
 }
 
+import { isEmailAdmin, isUsernameAdmin } from '@/lib/auth-constants';
+
 // 1. Check Access: Returns status object
 export async function checkAccess(providedUserId?: string | null) {
     let userId: string | null = null;
@@ -21,7 +23,7 @@ export async function checkAccess(providedUserId?: string | null) {
         userId = authData.userId;
         sessionClaims = authData.sessionClaims;
     } catch (e) {
-        console.warn("Auth check failed in checkAccess (env vars missing?):", e);
+        console.warn("Auth check failed in checkAccess:", e);
     }
 
     const finalUserId = providedUserId || userId;
@@ -30,19 +32,12 @@ export async function checkAccess(providedUserId?: string | null) {
         return { isValid: false, expiryDate: null, isLoggedIn: false, planStatus: 'INACTIVE', isAdmin: false };
     }
 
-    let isAdmin = false;
-
-    // A. Check Admin Status via Session Claims (Fastest & Safest)
+    // --- QUICK ADMIN CHECK (No DB needed) ---
     const claims = sessionClaims as { email?: string, username?: string } | null;
     const userEmail = claims?.email;
     const username = claims?.username;
 
-    const adminEmails = ['ishimwet822@gmail.com', 'mwisenezanadjim0@gmail.com'];
-    const adminUsernames = ['trick_market', 'nadjim_12'];
-
-    isAdmin =
-        adminEmails.includes(userEmail?.toLowerCase() || '') ||
-        adminUsernames.includes(username || '');
+    const isAdmin = isEmailAdmin(userEmail) || isUsernameAdmin(username);
 
     if (isAdmin) {
         return {
@@ -54,15 +49,15 @@ export async function checkAccess(providedUserId?: string | null) {
         };
     }
 
-    // B. Fallback to currentUser() only if claims are missing
+    // B. Fallback to currentUser() only if claims are missing for admin check
     try {
         const user = await currentUser();
         if (user) {
-            isAdmin =
-                user.emailAddresses?.some(e => adminEmails.includes(e.emailAddress.toLowerCase())) ||
-                adminUsernames.includes(user.username?.toLowerCase() || '');
+            const secondaryAdminCheck =
+                user.emailAddresses?.some(e => isEmailAdmin(e.emailAddress)) ||
+                isUsernameAdmin(user.username);
 
-            if (isAdmin) {
+            if (secondaryAdminCheck) {
                 return {
                     isValid: true,
                     expiryDate: new Date('2099-12-31'),
@@ -76,7 +71,7 @@ export async function checkAccess(providedUserId?: string | null) {
         console.warn('[Clerk] User profile fetch failed in checkAccess.', error);
     }
 
-    // C. Defensively check Subscription via DB
+    // --- SUBSCRIPTION CHECK (Hits DB) ---
     try {
         const sub = await prisma.subscription.findUnique({
             where: { userId: finalUserId }
