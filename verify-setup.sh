@@ -12,6 +12,16 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Detect IP Address first for use in checks
+if command -v ip &> /dev/null; then
+    CURRENT_IP=$(ip addr show | grep -E "inet (10\.|192\.|172\.)" | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+elif command -v hostname &> /dev/null; then
+    CURRENT_IP=$(hostname -I | awk '{print $1}')
+else
+    CURRENT_IP="Unable to detect"
+fi
+
+
 # Check 1: package.json dev script
 echo "1️⃣  Checking package.json dev script..."
 if grep -q '"dev": "next dev -H 0.0.0.0"' package.json; then
@@ -45,7 +55,7 @@ echo ""
 
 # Check 3: .env configuration
 echo "3️⃣  Checking .env configuration..."
-if grep -q "NEXT_PUBLIC_APP_URL=\"http://10.15.37.42:3000\"" .env; then
+if grep -q "NEXT_PUBLIC_APP_URL=\"http://$CURRENT_IP:3000\"" .env; then
     echo -e "${GREEN}✅ APP_URL configured correctly${NC}"
 else
     echo -e "${YELLOW}⚠️  APP_URL may need updating${NC}"
@@ -82,10 +92,10 @@ echo ""
 
 # Check 5: Admin bypass configuration
 echo "5️⃣  Checking admin bypass..."
-if grep -q "ishimwet822@gmail.com" src/middleware.ts; then
-    echo -e "${GREEN}✅ Admin bypass configured in middleware${NC}"
+if grep -q "mwisenezanadjim0@gmail.com" src/lib/auth-constants.ts; then
+    echo -e "${GREEN}✅ Admin bypass configured in auth-constants.ts${NC}"
 else
-    echo -e "${RED}❌ Admin bypass NOT found in middleware${NC}"
+    echo -e "${RED}❌ Admin bypass NOT found in auth-constants.ts${NC}"
 fi
 echo ""
 
@@ -115,13 +125,13 @@ else
 fi
 
 echo "   Current IP: $CURRENT_IP"
-if [ "$CURRENT_IP" = "10.15.37.42" ]; then
+if [ "$CURRENT_IP" != "Unable to detect" ] && grep -q "http://$CURRENT_IP:3000" .env; then
     echo -e "${GREEN}✅ IP matches configuration${NC}"
 elif [ "$CURRENT_IP" = "Unable to detect" ]; then
     echo -e "${YELLOW}⚠️  Please verify IP manually${NC}"
 else
     echo -e "${YELLOW}⚠️  IP has changed! Update .env file${NC}"
-    echo "   Expected: 10.15.37.42"
+    echo "   Expected: http://$CURRENT_IP:3000"
     echo "   Current:  $CURRENT_IP"
 fi
 echo ""
