@@ -13,6 +13,7 @@ export default function ExpensesPage() {
 
     // Form State
     const [category, setCategory] = useState('Other')
+    const [customCategory, setCustomCategory] = useState('')
     const [amount, setAmount] = useState('')
     const [description, setDescription] = useState('')
 
@@ -36,10 +37,17 @@ export default function ExpensesPage() {
         e.preventDefault()
         if (!amount || !description) return
 
+        // Validate custom category
+        const finalCategory = category === 'Custom' ? customCategory.trim() : category
+        if (!finalCategory) {
+            toast.error("Please enter a category name")
+            return
+        }
+
         setSubmitting(true)
         try {
             await createExpense({
-                category,
+                category: finalCategory,
                 amount: parseInt(amount),
                 description
             })
@@ -47,6 +55,7 @@ export default function ExpensesPage() {
             setAmount('')
             setDescription('')
             setCategory('Other')
+            setCustomCategory('') // Reset custom category
             loadExpenses()
         } catch (e) {
             toast.error("Failed to save expense")
@@ -104,8 +113,24 @@ export default function ExpensesPage() {
                                     className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm outline-none focus:border-blue-500/50 transition"
                                 >
                                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                    <option value="Custom">Custom / Create New</option>
                                 </select>
                             </div>
+
+                            {/* Conditional Custom Category Input */}
+                            {category === 'Custom' && (
+                                <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <label className="text-xs uppercase font-bold text-blue-400">New Category Name</label>
+                                    <input
+                                        type="text"
+                                        value={customCategory}
+                                        onChange={e => setCustomCategory(e.target.value)}
+                                        placeholder="e.g. Marketing, Maintenance"
+                                        className="w-full bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl text-sm outline-none focus:border-blue-500 transition text-blue-100 placeholder:text-blue-500/30"
+                                        autoFocus
+                                    />
+                                </div>
+                            )}
 
                             <div className="space-y-1">
                                 <label className="text-xs uppercase font-bold text-slate-400">Amount (Rwf)</label>
