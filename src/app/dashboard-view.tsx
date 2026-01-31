@@ -68,8 +68,8 @@ export default function DashboardView({ userId, data = {} }: any) {
 
   const lossySales = salesToday.filter((s: any) => s.profit < 0);
 
-  // Calculate Gross Profit (Net Profit + Expenses)
-  const grossProfit = profit + expenses;
+  // Calculate Gross Profit (Net Profit from Sales)
+  const grossProfit = profit;
   // Determine alert level
   const isExpenseCritical = grossProfit > 0 && expenses > grossProfit; // Red LOSS badge
   const isExpenseWarning = grossProfit > 0 && expenses > (grossProfit * 0.5) && !isExpenseCritical; // Yellow ALERT badge
@@ -99,39 +99,11 @@ export default function DashboardView({ userId, data = {} }: any) {
           <p className="text-slate-300 text-xs md:text-sm font-bold mb-1 uppercase tracking-widest">Total Expenses</p>
           <p className="text-lg md:text-2xl font-black text-orange-400">{rwf(expenses)}</p>
         </div>
-        <div className={`bg-white/5 backdrop-blur-xl p-5 rounded-2xl border shadow-xl ${isExpenseCritical ? 'border-red-500/50 bg-red-500/5' :
-          isExpenseWarning ? 'border-yellow-500/50 bg-yellow-500/5' :
-            profit < 0 ? 'border-red-500/50 bg-red-500/5' :
-              'border-white/10'
-          }`}>
-          <div className="flex justify-between items-start">
-            <p className="text-slate-300 text-xs md:text-sm font-bold mb-1 uppercase tracking-widest">
-              {profit >= 0 ? "Net Gain" : "Net Deficit"}
-            </p>
-            {isExpenseCritical && (
-              <span className="text-[9px] font-black bg-red-500 text-white px-1.5 py-0.5 rounded uppercase animate-pulse">LOSS</span>
-            )}
-            {isExpenseWarning && !isExpenseCritical && (
-              <span className="text-[9px] font-black bg-yellow-500 text-black px-1.5 py-0.5 rounded uppercase animate-pulse">Alert</span>
-            )}
-          </div>
-          <p className={`text-lg md:text-2xl font-black ${isExpenseCritical ? 'text-red-500' :
-            isExpenseWarning ? 'text-yellow-400' :
-              (profit >= 0 ? 'text-green-400' : 'text-red-500')
-            }`}>
+        <div className={`bg-white/5 backdrop-blur-xl p-5 rounded-2xl border shadow-xl ${profit < 0 ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'}`}>
+          <p className="text-slate-300 text-xs md:text-sm font-bold mb-1 uppercase tracking-widest">Gross Profit</p>
+          <p className={`text-lg md:text-2xl font-black ${profit >= 0 ? 'text-green-400' : 'text-red-500'}`}>
             {profit < 0 ? '-' : ''}{rwf(Math.abs(profit))}
           </p>
-          {isExpenseCritical && (
-            <p className="text-[9px] text-red-500/80 font-mono mt-1">Exp &gt; Gross Profit</p>
-          )}
-          {isExpenseWarning && !isExpenseCritical && (
-            <p className="text-[9px] text-yellow-500/80 font-mono mt-1">Exp &gt; 50% GP</p>
-          )}
-          {isExpenseCritical && (
-            <p className="text-[10px] text-orange-400 font-bold mt-2 bg-orange-500/10 px-2 py-1 rounded">
-              Revenue Coverage: {rwf(expenses - grossProfit)}
-            </p>
-          )}
         </div>
         <div className="bg-white/5 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-xl">
           <p className="text-slate-300 text-xs md:text-sm font-bold uppercase tracking-widest mb-1">Stock Value</p>

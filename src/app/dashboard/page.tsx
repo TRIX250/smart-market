@@ -59,7 +59,7 @@ export default async function DashboardPage() {
         dashboardData = {
             salesToday,
             revenue,
-            profit: (totalGrossProfit - totalSellingLoss) - totalExpenses,
+            profit: (totalGrossProfit - totalSellingLoss),
             netProfit: totalGrossProfit,
             sellingLoss: totalSellingLoss,
             expenses: totalExpenses,
