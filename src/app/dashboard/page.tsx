@@ -65,7 +65,8 @@ export default async function DashboardPage() {
             expenses: totalExpenses,
             inventoryValue: totalStockValue,
             wasteLogsToday,
-            creditSales
+            creditSales,
+            outOfStockProducts: products.filter(p => p.stockQty <= 0)
         };
     } catch (error) {
         console.error("Dashboard data fetch failed:", error);

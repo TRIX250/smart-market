@@ -42,6 +42,7 @@ export default function DashboardView({ userId, data = {} }: any) {
   const wasteLogsToday = data.wasteLogsToday || [];
   const creditSales = data.creditSales || [];
   const sellingLoss = data.sellingLoss || 0;
+  const outOfStockProducts = data.outOfStockProducts || [];
 
   // Formatting as Rwf
   const rwf = (val: number) => `Rwf ${new Intl.NumberFormat('en-RW').format(val)}`;
@@ -374,6 +375,57 @@ export default function DashboardView({ userId, data = {} }: any) {
           </div>
         ) : (
           <div className="py-8 text-center text-slate-600 italic">No products sold below cost price today.</div>
+        )}
+      </div>
+
+      {/* OUT OF STOCK PANEL */}
+      <div className="bg-red-500/5 border border-red-500/20 p-4 md:p-6 rounded-3xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+          <h3 className="text-lg font-bold text-red-500 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-red-500"></span>
+            Out of Stock Items
+          </h3>
+          <div className="text-left md:text-right">
+            <p className="text-xs text-slate-500">Action Required</p>
+            <p className="text-2xl font-black text-red-400">{outOfStockProducts.length} Items</p>
+          </div>
+        </div>
+
+        {outOfStockProducts.length > 0 ? (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/5 rounded-xl overflow-hidden shadow-2xl">
+            <div className="overflow-x-auto no-scrollbar">
+              <table className="w-full text-sm">
+                <thead className="text-slate-400 border-b border-white/10 bg-white/5 backdrop-blur-md">
+                  <tr>
+                    <th className="text-left p-3">Product Name</th>
+                    <th className="hidden sm:table-cell text-left p-3">Category</th>
+                    <th className="hidden md:table-cell text-left p-3">Supplier</th>
+                    <th className="text-right p-3">Stock</th>
+                    <th className="text-right p-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {outOfStockProducts.map((p: any) => (
+                    <tr key={p.id}>
+                      <td className="p-3 text-slate-300 font-medium break-words max-w-[150px] md:max-w-none">{p.name}</td>
+                      <td className="hidden sm:table-cell p-3 text-xs text-slate-400 uppercase">{p.category}</td>
+                      <td className="hidden md:table-cell p-3 text-xs text-slate-400">{p.supplier || '-'}</td>
+                      <td className="p-3 text-right font-bold text-red-500 font-mono">{p.stockQty}</td>
+                      <td className="p-3 text-right">
+                        <Link href={`/inventory?search=${encodeURIComponent(p.name)}`} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                          Restock
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="py-8 text-center text-slate-600 italic">
+            <span className="text-green-500 font-bold">Good job!</span> No out-of-stock items.
+          </div>
         )}
       </div>
 
