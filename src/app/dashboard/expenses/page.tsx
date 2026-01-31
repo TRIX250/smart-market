@@ -112,8 +112,8 @@ export default function ExpensesPage() {
                                     onChange={e => setCategory(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm outline-none focus:border-blue-500/50 transition"
                                 >
-                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                    <option value="Custom">Custom / Create New</option>
+                                    {categories.map(c => <option key={c} value={c} className="bg-[#0f172a]">{c}</option>)}
+                                    <option value="Custom" className="bg-[#0f172a]">Custom / Create New</option>
                                 </select>
                             </div>
 
