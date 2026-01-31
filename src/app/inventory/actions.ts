@@ -233,6 +233,38 @@ export async function confirmSale(saleId: string) {
   }
 }
 
+export async function deleteSale(saleId: string) {
+  const userId = await getAuth();
+
+  const sale = await prisma.sale.findUnique({
+    where: { id: saleId },
+    include: { product: true }
+  });
+
+  if (!sale || sale.userId !== userId) {
+    return { success: false, error: "Sale not found or unauthorized" };
+  }
+
+  try {
+    await prisma.$transaction([
+      prisma.product.update({
+        where: { id: sale.productId },
+        data: { stockQty: { increment: sale.quantity } }
+      }),
+      prisma.sale.delete({
+        where: { id: saleId }
+      })
+    ]);
+
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error) {
+    console.error("Delete Sale Error:", error);
+    return { success: false, error: "Failed to delete sale" };
+  }
+}
+
 export async function logWaste(formData: FormData) {
   const userId = await getAuth();
   const productId = formData.get('productId') as string;

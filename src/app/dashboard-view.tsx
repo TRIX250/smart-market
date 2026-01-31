@@ -1,5 +1,6 @@
 'use client'
-import { confirmSale } from './inventory/actions'
+import { confirmSale, deleteSale } from './inventory/actions'
+import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { UserButton } from "@clerk/nextjs";
 import {
@@ -151,6 +152,7 @@ export default function DashboardView({ userId, data = {} }: any) {
                   <th className="text-left pb-2">Method</th>
                   <th className="text-left pb-2">Date</th>
                   <th className="text-right pb-2">Total</th>
+                  <th className="text-right pb-2">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -163,6 +165,19 @@ export default function DashboardView({ userId, data = {} }: any) {
                       {new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="py-3 text-right font-mono">{rwf(s.totalAmount)}</td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete this sale? Stock will be restored.')) {
+                            await deleteSale(s.id);
+                          }
+                        }}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                        title="Delete Sale"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
