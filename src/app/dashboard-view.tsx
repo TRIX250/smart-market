@@ -1,6 +1,7 @@
 'use client'
+import { useState } from 'react'
 import { confirmSale, deleteSale } from './inventory/actions'
-import { Trash2 } from 'lucide-react'
+import { Trash2, AlertTriangle, X } from 'lucide-react'
 import Link from 'next/link'
 import { UserButton } from "@clerk/nextjs";
 import {
@@ -10,10 +11,27 @@ import {
 import { DBErrorView } from '@/components/db-error-view';
 
 export default function DashboardView({ userId, data = {} }: any) {
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Database Connection Guard
   if (data.dbError) {
     return <DBErrorView />;
   }
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteSale(itemToDelete);
+      setItemToDelete(null);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete sale");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Safe extraction with fallbacks
   const salesToday = data.salesToday || [];
@@ -167,11 +185,7 @@ export default function DashboardView({ userId, data = {} }: any) {
                     <td className="py-3 text-right font-mono">{rwf(s.totalAmount)}</td>
                     <td className="py-3 text-right">
                       <button
-                        onClick={async () => {
-                          if (confirm('Are you sure you want to delete this sale? Stock will be restored.')) {
-                            await deleteSale(s.id);
-                          }
-                        }}
+                        onClick={() => setItemToDelete(s.id)}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"
                         title="Delete Sale"
                       >
@@ -376,6 +390,58 @@ export default function DashboardView({ userId, data = {} }: any) {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* MODAL */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#0f172a] border border-white/10 rounded-2xl w-full max-w-sm p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3 text-red-500">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <AlertTriangle size={24} />
+                </div>
+                <h3 className="text-lg font-bold">Confirm Deletion</h3>
+              </div>
+              <button
+                onClick={() => setItemToDelete(null)}
+                className="text-slate-500 hover:text-white transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+              Are you sure you want to delete this sale? This action will reverse the transaction and <span className="text-white font-bold">restore stock quantity</span>.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setItemToDelete(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition border border-white/5"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-sm shadow-lg shadow-red-600/20 transition flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Delete Sale
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
