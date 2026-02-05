@@ -608,3 +608,36 @@ export async function deleteUser(targetUserId: string) {
     revalidatePath('/admin/users');
     return { success: true };
 }
+export async function getInventoryInsights() {
+    const user = await getSafeUser()
+    const isAdmin = await isUserAdmin(user)
+    if (!isAdmin) throw new Error('Unauthorized')
+
+    // Fetch products across all shops
+    const products = await prisma.product.findMany({
+        take: 10,
+        orderBy: {
+            stockQty: 'asc'
+        },
+        include: {
+            sales: true
+        }
+    })
+
+    return products.map(p => {
+        // Calculate daily sell rate (simple average over last 7 days or total/30)
+        const totalSales = p.sales.length
+        const avgDaily = (totalSales / 30).toFixed(1)
+
+        let status = 'Good'
+        if (p.stockQty === 0) status = 'Critical'
+        else if (p.stockQty < 10) status = 'Low'
+
+        return {
+            name: p.name,
+            stock: p.stockQty,
+            avgSales: parseFloat(avgDaily),
+            status
+        }
+    })
+}
